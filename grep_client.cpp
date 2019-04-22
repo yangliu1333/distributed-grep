@@ -39,6 +39,11 @@ grep::grep_options get_options(po::variables_map& vm) {
         options.print_line_numbers = true;
     }
 
+    if(vm.count("print-whole-line"))
+    {
+        options.print_whole_line = true;
+    }
+
     if(vm.count("input-pattern"))
     {
         options.pattern = vm["input-pattern"].as< std::string >();
@@ -53,22 +58,25 @@ std::string request(grep::grep_options& options) {
                   {"files_only", options.files_only},
                   {"print_line_numbers", options.print_line_numbers},
                   {"ignore_case", options.ignore_case},
+                  {"print_whole_line", options.print_whole_line},
                   {"pattern", options.pattern}};
     return j.dump();
 }
 
 int main(int argc, char* argv[])
 {
-
+    std::string server_name;
     po::options_description opts("Options");
     opts.add_options()
             ("help,h", "produce help message")
+            ("s", po::value<std::string>(&server_name), "Specify name of this server.")
             ("byte-offset,b", "Print the byte offset within the input file before each line  of output.")
             ("count,c", "Suppress normal output; instead print a count of matching  lines for  each  input  file.  With the -v, --invert-match option (see below), count non-matching lines.")
             ("ignore-case,i", "Ignore case distinctions in  both  the  PATTERN  and  the  input files.")
             ("files-without-match,L", "Suppress  normal  output;  instead  print the name of each input file from which no output would normally have been printed.  The scanning will stop on the first match.")
             ("files-with-matches,l", "Suppress  normal  output;  instead  print the name of each input file from which output would normally have  been  printed.   The scanning will stop on the first match.")
-            ("line-number,n", "Prefix each line of output with the line number within its input file.");
+            ("line-number,n", "Prefix each line of output with the line number within its input file.")
+            ("print-whole-line,w", "Print whole line before the match");
     // Hidden options, will be allowed both on command line and
     // in config file, but will not be shown to the user.
     po::options_description hidden("Hidden options");
@@ -91,8 +99,12 @@ int main(int argc, char* argv[])
     }
 
     if(!vm.count("input-pattern")) {
-        std::cout << "aa" << std::endl;
-        std::cerr << "No pattern specified" << std::endl;
+        std::cout << "No pattern specified" << std::endl;
+        return 1;
+    }
+
+    if(!vm.count("s")) {
+        std::cout << "No server name specified" << std::endl;
         return 1;
     }
 
@@ -110,11 +122,10 @@ int main(int argc, char* argv[])
 
         //grep on local logs
         grep::grep_options options = get_options(vm);
-        grep g_local(options);
+        grep g_local(options, server_name);
         g_local.grep_on_logs(std::cout);
 
         std::string req = request(options);
-        std::cout << req << std::endl;
 
         boost::asio::const_buffer write_buf = boost::asio::buffer(req, req.max_size());
         socket.write_some(write_buf);

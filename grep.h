@@ -20,9 +20,10 @@ public:
         bool files_only;
         bool print_line_numbers;
         bool ignore_case;
+        bool print_whole_line;
     } grep_options;
 
-    explicit grep(grep_options& options);
+    explicit grep(grep_options& options, const std::string& server_name);
 
     //take a output steam and options object and files to grep
     void find_pattern(std::ostream& output, const std::string& file_name);
@@ -30,6 +31,8 @@ public:
     void grep_on_logs(std::ostream& ostream);
 
 private:
+    std::string server_name;
+
     bool print_byte_offset = false;
     bool count_only = false;
     std::string pattern;
@@ -37,6 +40,7 @@ private:
     bool files_only = false;
     bool print_line_numbers = false;
     bool ignore_case = false;
+    bool print_whole_line = false;
 
     boost::regex_constants::syntax_option_type flags = boost::regex_constants::basic;
     boost::regex re;

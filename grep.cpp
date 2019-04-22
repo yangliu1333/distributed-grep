@@ -12,13 +12,14 @@
 namespace fs = boost::filesystem;
 
 
-grep::grep(grep::grep_options &options) {
+grep::grep(grep::grep_options &options, const std::string& server_name) : server_name(server_name) {
     print_byte_offset = options.print_byte_offset;
     count_only = options.count_only;
     pattern = options.pattern;
     print_non_matching_files = options.print_non_matching_files;
     files_only = options.files_only;
     print_line_numbers = options.print_line_numbers;
+    print_whole_line = options.print_whole_line;
 
     if (ignore_case) {
         flags |= boost::regex_constants::icase;
@@ -27,10 +28,8 @@ grep::grep(grep::grep_options &options) {
 }
 
 void grep::find_pattern(std::ostream& output, const std::string &current_file) {
+    output << "File " << current_file << ":"<< std::endl;
     std::ifstream is(current_file);
-
-//    std::cout << "123" << std::endl;
-
     std::string line;
     int match_found = 0;
     int linenum = 1;
@@ -64,6 +63,9 @@ void grep::find_pattern(std::ostream& output, const std::string &current_file) {
                 {
                     output << what.position() << ":";
                 }
+                if (print_whole_line) {
+                    output << line << " : ";
+                }
                 output << what[0] << std::endl;
             }
         }
@@ -84,6 +86,8 @@ void grep::find_pattern(std::ostream& output, const std::string &current_file) {
 void grep::grep_on_logs(std::ostream& ostream) {
 
     fs::path logs_path(std::string(LOGGING_DIR));
+    ostream << "Logs in server: " << server_name << std::endl;
+
 
     try {
         if (fs::exists(logs_path) && fs::is_directory(logs_path)) {
