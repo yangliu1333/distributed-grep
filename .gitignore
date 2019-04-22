@@ -1,0 +1,4 @@
+json/
+googletest/
+.idea/
+cmake-build-debug/
