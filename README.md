@@ -1,5 +1,5 @@
 # distributed-grep
-A simple logging grep utility for debugging in distributed environments mostly implemented with Boost.
+A simple logging grep utility in c++ for debugging in distributed environments mostly implemented with Boost.
 
 ## Please add dependency libraries.
 - Boost (install via package manager)
